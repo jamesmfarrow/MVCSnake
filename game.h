@@ -50,7 +50,7 @@ class view : public QWidget
 private:
 
     controller *c;
-    QWindow window(QWidget);
+
 
     QImage dot_png;
     QImage head_png;
@@ -61,12 +61,12 @@ private:
     //play area height
     static const int B_HEIGHT = 500;
     //delay offset for the speed game/refresh
-    const int DELAY = 100;
+    const int DELAY = 80;
 
 public:
 
     view(QWidget *parent = 0);
-    view(controller* c);// : c(c) { std::cout << "view constructor" << std::endl; }
+    view(controller* c);
     void loadImages();
     void initGame();
     int getTimerId();
@@ -111,7 +111,6 @@ private:
     static const int B_HEIGHT = 500;
 
 
-    //Turn change;
     Movement direction;
 public:
     model();
@@ -123,7 +122,6 @@ public:
     void placeObstacle();
     void grow(int amount);
     void foodCollision();
-    void obstacleCollision();
     void checkCollision();
     void move();
     bool GetGamePlay();
@@ -157,10 +155,8 @@ public:
     int CgetScore();
 
     void CFoodCollision();
-    void CobstacleCollison();
     void CcheckCollision();
     void Cmove();
-    void CpressEvent(QKeyEvent *e);
     Movement CgetDir();
     void CsetDir(Movement variable);
 
@@ -175,6 +171,19 @@ public:
 //place all functions for all classes below here and make them inline
 
 //all controller functions
+
+inline void controller::CKillTimer() {
+    v->killTimer(CgetTimer());
+}
+
+inline void controller::CdoDrawing() {
+    v->doDrawing();
+}
+
+inline int controller::CgetTimer() {
+    return v->getTimerId();
+}
+
 inline int controller::CgetScore() {
     return m->getScore();
 }
@@ -187,14 +196,6 @@ inline Movement controller::CgetDir() {
     return m->getDir();
 }
 
-inline void controller::CpressEvent(QKeyEvent *e) {
-    v->keyPressEvent(e);
-}
-
-inline void controller::CdoDrawing() {
-    v->doDrawing();
-}
-
 inline void controller::CFoodCollision() {
     m->foodCollision();
 }
@@ -205,18 +206,6 @@ inline void controller::Cmove() {
 
 inline void controller::CcheckCollision() {
     m->checkCollision();
-}
-
-inline void controller::CobstacleCollison() {
-    m->obstacleCollision();
-}
-
-inline void controller::CKillTimer() {
-    v->killTimer(CgetTimer());
-}
-
-inline int controller::CgetTimer() {
-    return v->getTimerId();
 }
 
 inline coordinate& controller::CgetApple() {
@@ -250,9 +239,8 @@ inline bool controller::CgamePlay() {
 //all view functions
 //constructor
 view::view(controller* c) : c(c) {
-    std::cout << "view constructor2" << std::endl;
     setStyleSheet("background-color:grey;");
-
+    setWindowTitle("Snake Game");
     //set the paly area size
     resize(B_WIDTH, B_HEIGHT);
     //load the png files for the game
@@ -268,8 +256,6 @@ inline int view::getTimerId() {
 }
 
 inline void view::loadImages() {
-
-    std::cout << "load images" << std::endl;
     dot_png.load(":/new/prefix1/dot.png");
     head_png.load(":/new/prefix1/head.png");
     apple_png.load(":/new/prefix1/apple.png");
@@ -284,9 +270,6 @@ inline void view::initGame() {
 inline void view::paintEvent(QPaintEvent *e) {
 
     Q_UNUSED(e);
-
-    std::cout << "paintevent" << std::endl;
-
     c->CdoDrawing();
 }
 
@@ -296,7 +279,7 @@ inline void view::timerEvent(QTimerEvent *e){
     if (c->CgamePlay()) {
 
         c->CFoodCollision();
-        c->CobstacleCollison();
+        //c->CobstacleCollison();
         c->CcheckCollision();
         c->Cmove();
     }
@@ -385,6 +368,7 @@ inline void view::keyPressEvent(QKeyEvent *e) {
 
 }
 
+//end view functions
 /*--------------------------------------------------------------------*/
 
 //all model functions are below
@@ -449,26 +433,7 @@ inline void model::foodCollision() {
     }
 }
 
-inline void model::obstacleCollision() {
-
-    for(unsigned long int i{}; i < placed_obstacles.size() ; i++) {
-        if ((the_snake[0].m_x > placed_obstacles[i].m_x - 10 && the_snake[0].m_x < placed_obstacles[i].m_x + 10)
-            && (the_snake[0].m_y > placed_obstacles[i].m_y - 10 && the_snake[0].m_y < placed_obstacles[i].m_y + 10)) {
-            //QSound::play(":/new/prefix1/button-1.wav");
-            GamePlay = false;
-            break;
-        }
-            if(!GamePlay) {
-                c->CKillTimer();
-            }
-        }
-}
-
-
-
 inline void model::move() {
-
-    std::cout << "move()" << std::endl;
 
     for (int i = the_snake.size()-1; i > 0; i--) {
         the_snake[i] = the_snake[i - 1];
@@ -495,37 +460,50 @@ inline void model::checkCollision() {
 
     //below for self collision
     for(unsigned long int i{1}; i < the_snake.size() - 1; i++) {
-                if(the_snake[0] == the_snake[i]) { GamePlay = false; break; }
-            }
+                if(the_snake[0] == the_snake[i]) GamePlay = false;
+    }
 
-    if(!GamePlay) {
-        c->CKillTimer();
+
+    //below for obstacle collision
+    for(unsigned long int i{}; i < placed_obstacles.size() ; i++) {
+        if ((the_snake[0].m_x > placed_obstacles[i].m_x - 10 && the_snake[0].m_x < placed_obstacles[i].m_x + 10)
+            && (the_snake[0].m_y > placed_obstacles[i].m_y - 10 && the_snake[0].m_y < placed_obstacles[i].m_y + 10)) {
+            QSound::play(":/new/prefix1/button-1.wav");
+            GamePlay = false;
+            break;
+        }
     }
 
 
     //add GamePlay = false to each if() to disable wraparound
     //and enable wall crash
     if(the_snake[0].m_y >= B_HEIGHT){
-        the_snake[0].m_y = 0;
+        //the_snake[0].m_y = 0;
+        GamePlay = false;
     }
 
     if(the_snake[0].m_y < 0){
-        the_snake[0].m_y = B_HEIGHT;
+        //the_snake[0].m_y = B_HEIGHT;
+        GamePlay = false;
     }
 
     if(the_snake[0].m_x >= B_WIDTH){
-        the_snake[0].m_x = 0;
+        //the_snake[0].m_x = 0;
+        GamePlay = false;
     }
 
     if(the_snake[0].m_x < 0){
-        the_snake[0].m_x = B_WIDTH;
+        //the_snake[0].m_x = B_WIDTH;
+        GamePlay = false;
+    }
+
+    if(!GamePlay) {
+        c->CKillTimer();
     }
 
 }
 
 inline void model::placeFood() {
-
-    std::cout << "place food()" << std::endl;
 
     bool notundersnake{true};
     std::random_device dev;
@@ -538,7 +516,6 @@ inline void model::placeFood() {
         { notundersnake = false; break; }
     }
     if(notundersnake) apple = temp;
-    std::cout << apple.m_x << " " << apple.m_y << std::endl;
 }
 
 
@@ -548,11 +525,11 @@ inline void model::placeObstacle() {
     std::random_device dev;
     std::uniform_int_distribution<int> dist(0,B_HEIGHT-BODY_SIZE);
     coordinate p((dist(dev)), (dist(dev)));
-    std::cout << p.m_x << " " << p.m_y << std::endl;
     if(placed_obstacles.empty()) placed_obstacles.push_back(p);
     else {
-        for(unsigned long int i{}; i < placed_obstacles.size() -1; i++) {
+        for(unsigned long int i{}; i < placed_obstacles.size(); i++) {
             if(p == placed_obstacles[i]) { not_duplicate = false; break; }
+            //check if apple is in same place
             if((placed_obstacles[i].m_x > apple.m_x - 100 && placed_obstacles[i].m_x < apple.m_x + 100)
                 && (placed_obstacles[i].m_y > apple.m_y - 100 && placed_obstacles[i].m_y < apple.m_y + 100)) {
                 not_duplicate = false; break;
@@ -561,5 +538,7 @@ inline void model::placeObstacle() {
         if(not_duplicate) { placed_obstacles.push_back(p); }
     }
 }
+
+//end model functions
 
 #endif // GAME_H
