@@ -100,8 +100,6 @@ private:
     coordinate apple;
     coordinate snake;
 
-    //delay offset for the speed game/refresh
-    const int DELAY = 100;
     int score = 0;
     bool GamePlay;
 
@@ -144,6 +142,7 @@ public:
         v->show();
     }
 
+    ~controller() { delete m; delete v; std::cout << "destructor" << std::endl; }
 
     void CinitGame();
 
