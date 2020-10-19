@@ -120,6 +120,8 @@ public:
     void placeObstacle();
     void grow(int amount);
     void foodCollision();
+    bool selfCollision();
+    bool obstacleCollision();
     void checkCollision();
     void move();
     bool GetGamePlay();
@@ -153,7 +155,6 @@ public:
     bool CgamePlay();
     int CgetScore();
 
-    void CFoodCollision();
     void CcheckCollision();
     void Cmove();
     Movement CgetDir();
@@ -193,10 +194,6 @@ inline void controller::CsetDir(Movement variable) {
 
 inline Movement controller::CgetDir() {
     return m->getDir();
-}
-
-inline void controller::CFoodCollision() {
-    m->foodCollision();
 }
 
 inline void controller::Cmove() {
@@ -277,8 +274,6 @@ inline void view::timerEvent(QTimerEvent *e){
 
     if (c->CgamePlay()) {
 
-        c->CFoodCollision();
-        //c->CobstacleCollison();
         c->CcheckCollision();
         c->Cmove();
     }
@@ -396,6 +391,15 @@ inline std::vector<coordinate>& model::getSnakeVec() {
     return the_snake;
 }
 
+inline bool model::selfCollision() {
+
+    //below for self collision
+    for(unsigned long int i{1}; i < the_snake.size() - 1; i++) {
+                if(the_snake[0] == the_snake[i]) { return true; break ; }
+    }
+    return false;
+}
+
 inline void model::initGame() {
 
     for(int i = 0; i < snake_size; i++) {
@@ -417,7 +421,18 @@ inline void model::grow(int amount) {
        for(int i{}; i < amount; i++) {
            the_snake.push_back(last);
        }
-   }
+}
+
+inline bool model::obstacleCollision() {
+
+    for(unsigned long int i{}; i < placed_obstacles.size() ; i++) {
+        if ((the_snake[0].m_x > placed_obstacles[i].m_x - 10 && the_snake[0].m_x < placed_obstacles[i].m_x + 10)
+            && (the_snake[0].m_y > placed_obstacles[i].m_y - 10 && the_snake[0].m_y < placed_obstacles[i].m_y + 10)) {
+            return true; break;
+        }
+    }
+    return false;
+}
 
 inline void model::foodCollision() {
 
@@ -432,46 +447,13 @@ inline void model::foodCollision() {
     }
 }
 
-inline void model::move() {
-
-    for (int i = the_snake.size()-1; i > 0; i--) {
-        the_snake[i] = the_snake[i - 1];
-    }
-
-    switch(direction){
-            case Movement::north:
-                the_snake[0].m_y-=BODY_SIZE;
-                break;
-            case Movement::south:
-                the_snake[0].m_y+=BODY_SIZE;
-                break;
-            case Movement::east:
-                the_snake[0].m_x-=BODY_SIZE;
-                break;
-            case Movement::west:
-                the_snake[0].m_x+=BODY_SIZE;
-            break;
-
-            }
-}
-
 inline void model::checkCollision() {
 
-    //below for self collision
-    for(unsigned long int i{1}; i < the_snake.size() - 1; i++) {
-                if(the_snake[0] == the_snake[i]) GamePlay = false;
-    }
+    foodCollision();
 
+    if(selfCollision()) GamePlay = false;
 
-    //below for obstacle collision
-    for(unsigned long int i{}; i < placed_obstacles.size() ; i++) {
-        if ((the_snake[0].m_x > placed_obstacles[i].m_x - 10 && the_snake[0].m_x < placed_obstacles[i].m_x + 10)
-            && (the_snake[0].m_y > placed_obstacles[i].m_y - 10 && the_snake[0].m_y < placed_obstacles[i].m_y + 10)) {
-            QSound::play(":/new/prefix1/button-1.wav");
-            GamePlay = false;
-            break;
-        }
-    }
+    if(obstacleCollision()) { QSound::play(":/new/prefix1/button-1.wav"); GamePlay = false; }
 
 
     //add GamePlay = false to each if() to disable wraparound
@@ -501,6 +483,30 @@ inline void model::checkCollision() {
     }
 
 }
+
+inline void model::move() {
+
+    for (int i = the_snake.size()-1; i > 0; i--) {
+        the_snake[i] = the_snake[i - 1];
+    }
+
+    switch(direction){
+            case Movement::north:
+                the_snake[0].m_y-=BODY_SIZE;
+                break;
+            case Movement::south:
+                the_snake[0].m_y+=BODY_SIZE;
+                break;
+            case Movement::east:
+                the_snake[0].m_x-=BODY_SIZE;
+                break;
+            case Movement::west:
+                the_snake[0].m_x+=BODY_SIZE;
+            break;
+
+            }
+}
+
 
 inline void model::placeFood() {
 
