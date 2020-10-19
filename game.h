@@ -64,9 +64,8 @@ private:
     const int DELAY = 80;
 
 public:
-
-    view(QWidget *parent = 0);
     view(controller* c);
+
     void loadImages();
     void initGame();
     int getTimerId();
@@ -112,9 +111,9 @@ private:
     Movement direction;
 public:
     model();
-    model(controller* c) : c(c) {GamePlay = true; direction = Movement::west; }
-    void initGame();
+    model(controller* c) : c(c) { GamePlay = true; direction = Movement::west; }
 
+    void initGame();
     int getScore();
     void placeFood();
     void placeObstacle();
@@ -235,7 +234,7 @@ inline bool controller::CgamePlay() {
 //all view functions
 //constructor
 view::view(controller* c) : c(c) {
-    setStyleSheet("background-color:grey;");
+    setStyleSheet("background-color:grey");
     setWindowTitle("Snake Game");
     //set the paly area size
     resize(B_WIDTH, B_HEIGHT);
@@ -285,6 +284,10 @@ inline void view::timerEvent(QTimerEvent *e){
 inline void view::doDrawing() {
 
     QPainter qp(this);
+
+    QString YourScore = "Your score ";
+    QString display_score = QString::number(c->CgetScore());
+    qp.drawText(0, 20, YourScore+=display_score);
 
     std::vector<coordinate> placed_obstacles = c->CgetPlaced();
     std::vector<coordinate> the_snake = c->CgetSnakeVec();
