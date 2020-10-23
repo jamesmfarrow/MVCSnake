@@ -462,23 +462,23 @@ inline void model::checkCollision() {
     //add GamePlay = false to each if() to disable wraparound
     //and enable wall crash
     if(the_snake[0].m_y >= B_HEIGHT){
-        //the_snake[0].m_y = 0;
-        GamePlay = false;
+        the_snake[0].m_y = 0;
+        //GamePlay = false;
     }
 
     if(the_snake[0].m_y < 0){
-        //the_snake[0].m_y = B_HEIGHT;
-        GamePlay = false;
+        the_snake[0].m_y = B_HEIGHT;
+        //GamePlay = false;
     }
 
     if(the_snake[0].m_x >= B_WIDTH){
-        //the_snake[0].m_x = 0;
-        GamePlay = false;
+        the_snake[0].m_x = 0;
+        //GamePlay = false;
     }
 
     if(the_snake[0].m_x < 0){
-        //the_snake[0].m_x = B_WIDTH;
-        GamePlay = false;
+        the_snake[0].m_x = B_WIDTH;
+        //GamePlay = false;
     }
 
     if(!GamePlay) {
